@@ -51,7 +51,9 @@ def predict(
         logger.warning("predict_grpc is deprecated. Please use predict_raw")
         return user_model.predict_grpc(request)
     else:
-        if hasattr(user_model, "predict_raw"):
+        if hasattr(user_model, "predict_raw") or (
+            is_proto and request.WhichOneof("data_oneof") == "customData"
+        ):
             try:
                 return user_model.predict_raw(request)
             except SeldonNotImplementedError:
@@ -151,7 +153,9 @@ def transform_input(
         )
         return user_model.transform_input_grpc(request)
     else:
-        if hasattr(user_model, "transform_input_raw"):
+        if hasattr(user_model, "transform_input_raw") or (
+            is_proto and request.WhichOneof("data_oneof") == "customData"
+        ):
             try:
                 return user_model.transform_input_raw(request)
             except SeldonNotImplementedError:
@@ -202,7 +206,9 @@ def transform_output(
         )
         return user_model.transform_output_grpc(request)
     else:
-        if hasattr(user_model, "transform_output_raw"):
+        if hasattr(user_model, "transform_output_raw") or (
+            is_proto and request.WhichOneof("data_oneof") == "customData"
+        ):
             try:
                 return user_model.transform_output_raw(request)
             except SeldonNotImplementedError:
@@ -247,7 +253,9 @@ def route(
         logger.warning("route_grpc is deprecated. Please use route_raw")
         return user_model.route_grpc(request)
     else:
-        if hasattr(user_model, "route_raw"):
+        if hasattr(user_model, "route_raw") or (
+            is_proto and request.WhichOneof("data_oneof") == "customData"
+        ):
             try:
                 return user_model.route_raw(request)
             except SeldonNotImplementedError:
@@ -316,6 +324,8 @@ def aggregate(
             names_list = []
 
             for msg in request.seldonMessages:
+                if msg.WhichOneof("data_oneof") == "customData":
+                    return user_model.aggregate_raw(request)
                 (features, meta, datadef, data_type) = extract_request_parts(msg)
                 features_list.append(features)
                 names_list.append(datadef.names)
